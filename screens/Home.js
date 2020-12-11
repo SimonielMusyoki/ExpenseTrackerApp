@@ -1,4 +1,5 @@
 import React from 'react';
+import { VictoryPie } from 'victory-native'
 import {
     View,
     Text,
@@ -367,6 +368,142 @@ const Home = () => {
         )
     }
 
+    function processCategoryDataToDisplay(){
+        let chartData = categories.map(item=>{
+            let confirmedExpenses = item.expenses.filter(a=> a.status==confirmStatus)
+            let total = confirmedExpenses.reduce((a,b)=> a + (b.total || 0), 0)
+
+            return {
+                name: item.name,
+                y: total,
+                expenseCount: confirmedExpenses.length,
+                color: item.color,
+                id: item.id
+            }
+        })
+
+        // Filter out all Categories without Expenses
+        let filteredCategories = chartData.filter(a=> a.y > 0);
+
+        // Calculate Total Expenses
+        let totalExpenses = filteredCategories.reduce((a, b)=> a+ (b.y || 0), 0);
+
+        // Calculate Percentage
+        let finalChartData = filteredCategories.map(item=> {
+            let percentage = (item.y / totalExpenses * 100).toFixed(0)
+            return {
+                label: `${percentage}%`,
+                y: Number(item.y),
+                expenseCount: item.expenseCount,
+                color: item.color,
+                name: item.name,
+                id: item.id
+            }
+        })
+
+        return finalChartData;
+    }
+
+    function setSelectedCategoryByName(name){
+        let category = categories.filter(a=> a.name == name);
+        setSelectedCategory(category[0])
+    }
+
+    function renderChart(){
+
+        let chartData = processCategoryDataToDisplay();
+        let totalExpenseCount = chartData.reduce((a, b) => a + (b.expenseCount || 0), 0)
+        let colorScales= chartData.map(item => item.color)
+        return (
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+            <VictoryPie
+                data={chartData}
+                labels={(datum) => `${datum.y}`}
+                radius={({ datum }) => (selectedCategory && selectedCategory.name == datum.name) ? SIZES.width * 0.4 : SIZES.width * 0.4 - 10}
+                innerRadius={70}
+                labelRadius={({ innerRadius }) => (SIZES.width * 0.4 + innerRadius) / 2.5}
+                style={{
+                    labels: { fill: "white", ...FONTS.body3 },
+                    parent: {
+                        ...styles.shadow
+                    },
+                }}
+                width={SIZES.width * 0.8}
+                height={SIZES.width * 0.8}
+                colorScale={colorScales}
+                events={[{
+                    target: "data",
+                    eventHandlers: {
+                        onPress: () => {
+                            return [{
+                                target: "labels",
+                                mutation: (props) => {
+                                    let categoryName = chartData[props.index].name
+                                    setSelectCategoryByName(categoryName)
+                                }
+                            }]
+                        }
+                    }
+                }]}
+
+            />
+                <View style={{ position: "absolute", top: "43%", left:"43%"}}>
+                    <Text style={{textAlign: "center",...FONTS.h1}}>{totalExpenseCount}</Text>
+                    <Text style={{ textAlign:"center", ...FONTS.body3}}>Expenses</Text>
+                </View>
+            </View>
+        )
+    }
+
+    function renderCategorySummary() {
+        let data = processCategoryDataToDisplay();
+
+        const renderItem = ({item}) => {
+            return (
+                <TouchableOpacity 
+                    style={{
+                        flex: 1,
+                        flexDirection: "row",
+                        height: 40,
+                        backgroundColor:  (selectedCategory && selectedCategory.name) == item.name ? item.color : COLORS.white,
+                        borderRadius: SIZES.radius,
+                        paddingHorizontal: SIZES.padding,
+                        
+                    }}
+                    onPress={() => {
+                        let categoryName = item.name
+                        setSelectedCategoryByName(categoryName)
+                    }}
+                
+                >
+                    <View style={{ flex: 1, flexDirection: "row", alignItems: "center"}}>
+                        <View style={{
+                            backgroundColor: (selectedCategory && selectedCategory.name) == item.name ? COLORS.white : item.color,
+                            width: 20,
+                            borderRadius: 5,
+                            height: 20
+                        }}></View>
+                        <Text style={{marginLeft: SIZES.base, ...FONTS.h3}}>{item.name}</Text>
+                    </View>
+                    
+                    <View style={{ justifyContent: "center"}}>
+                    <Text style={{ ...FONTS.h3, color: (selectedCategory && selectedCategory.name) == item.name ? COLORS.white : COLORS.primary}}>KES {item.y} - {item.label}</Text>
+                    </View>
+                </TouchableOpacity>
+            )
+        }
+
+        return (
+            <View style={{ padding: SIZES.padding}}>
+                <FlatList 
+                    data = {data}
+                    keyExtractor={item => `${item.id}`}
+                    renderItem={renderItem}
+                />
+            </View>
+            
+        )
+    }
     return (
         <View style={{ flex: 1, backgroundColor: COLORS.lightGray2}}>
             {/* NavBar */}
@@ -382,6 +519,13 @@ const Home = () => {
                     <View>
                         {renderCategoryLists()}
                         {renderIncomingExpenses()}
+                    </View>
+                }
+                {
+                    viewMode=="chart" &&
+                    <View>
+                        { renderChart() }
+                        { renderCategorySummary() }
                     </View>
                 }
             </ScrollView>
