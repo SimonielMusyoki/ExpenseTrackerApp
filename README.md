@@ -4,7 +4,7 @@
 
 ## User Interface
 
-<a href="https://dribbble.com/shots/6037420-Expense-Tracker-App/attachments/6037420-Expense-Tracker-App?mode=media">
+<a href="https://dribbble.com/shots/6037420-Expense-Tracker-App/attachments/11211117?mode=media">
 <img src="./assets/money_tracker_app.webp" width="200"/>
 </a>
 
