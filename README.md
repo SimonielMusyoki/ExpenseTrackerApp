@@ -13,7 +13,7 @@
 - **Node.js & Express** => _For backend and API design_
 - **React Native** => _iOS and Android App_
 - **Reactjs** => _For a Web Version_
-- **[ToDo** => _Add TypeScript_
+- **[ToDo]** => _Add TypeScript_
 - [Coming Soon] **Flutter** => _iOS and Android Dart Version_
 
 ## Contributors
